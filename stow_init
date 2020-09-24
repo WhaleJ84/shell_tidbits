@@ -1,0 +1,9 @@
+#!/usr/bin/env sh
+
+STOWHOME="$HOME/stow_configs"
+NEW_DIR="$STOWHOME/$1"
+
+mkdir -p "$NEW_DIR/cnfgbldr/"
+echo 'cnfgbldr/*' > "$NEW_DIR/.stow-local-ignore"
+echo 'README.md' >> "$NEW_DIR/.stow-local-ignore"
+echo "# $1" > "$NEW_DIR/README.md"

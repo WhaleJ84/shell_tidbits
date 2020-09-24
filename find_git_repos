@@ -1,0 +1,3 @@
+#!/usr/bin/env sh
+
+find / -name '.git' -type d 2>/dev/null | sed -E "s/\/home\/$USER/~/"

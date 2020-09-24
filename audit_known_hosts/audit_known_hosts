@@ -1,0 +1,12 @@
+#!/usr/bin/env sh
+
+list="$HOME/.ssh/list_of_hosts"
+
+[ ! -f "$list" ] && echo "$list does not exist" && exit 0
+
+/usr/bin/ssh-keyscan -t ecdsa -f "$list" > "$HOME/.ssh/verified_hosts"
+
+verified=$(awk '{print $3}' "$HOME/.ssh/verified_hosts")
+
+# CHECK AGAINST EXISTING
+

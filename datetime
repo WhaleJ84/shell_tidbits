@@ -1,0 +1,10 @@
+#!/usr/bin/env sh
+
+# year (last two digits e.g. 2021=21)
+# month (two digits e.g. Oct=10)
+# day (two digits)
+# hour (two digit 24h e.g. 5pm=17)
+# minute (two digits e.g. 1m=01)
+# second (two digits e.g. 9s=09)
+
+date +"%C%m%d%H%M%S"

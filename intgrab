@@ -1,0 +1,33 @@
+#!/usr/bin/env sh
+#set -x
+
+# Name, MTU, MAC Address, Description, Mode, Tag
+
+get_interfaces(){
+    interfaces=$(ip addr | egrep '^[[:digit:]]' | sed -E 's/^([[:digit:]]: )([^:]*)(.*)/\2/' | sed -e :a -e '$!N; s/\n/ /; ta')
+}
+
+get_number_of_interfaces(){
+    num="$(echo "$interfaces" | wc -w)"
+}
+
+get_mtu(){
+    mtu=$(ip addr show "$1" | grep mtu | sed -E 's/^([^>]*)> mtu (([[:digit:]]){1,5})(.*)/\2/')
+}
+
+get_mac(){
+    mac=$(ip addr show "$1" | grep 'link/' | sed -E 's/^([[:space:]]*link\/[^[:space:]]*) (([[:xdigit:]]{2}:){5}[[:xdigit:]]{2})(.*)/\2/' | tr '[:lower:]' '[:upper:]')
+}
+
+get_interfaces
+get_number_of_interfaces
+int=1
+while [ ! "$int" -gt "$num" ]; do
+    interface=$(echo "$interfaces" | cut -d' ' -f"$int")
+    get_mac $interface
+    get_mtu $interface
+    echo "$interface, $mac, $mtu"
+    int=`expr $int + 1`
+done
+
+#set +x
