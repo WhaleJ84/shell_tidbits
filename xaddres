@@ -1,0 +1,151 @@
+#!/usr/bin/env sh
+
+usage(){
+    cat << EOF
+Usage: xaddres [OPTIONS]
+Add a new resolution to OUTPUT via xrandr using the WIDTH and HEIGHT dimensions.
+Example: xaddres -w 2560 -h 1440 -d DP1
+
+Required:
+    -h [HEIGHT], --height [HEIGHT]          Specifies the height xrandr will set OUTPUT to
+    -w [WIDTH], --width [WIDTH]             Specifies the width xrandr will set OUTPUT to
+    -o [OUTPUT], --output [OUTPUT]          Specifies the output xrandr will modify
+
+Optional:
+    -H, --help                              Display this message and exit
+    -p [POSITION],  --position [POSITION]   Specifies the position xrandr will set OUTPUT to relevant to the primary display.
+                                            The default is to mirror the display.
+EOF
+}
+
+ensure_input_given(){
+    if [ ! "$1" ]; then
+        echo 'No value given.\n'
+        usage
+        exit 0
+    fi
+}
+
+check_pixel_width(){
+    ensure_input_given $1
+    if [ ! "$(echo $1 | egrep '^[[:digit:]]{3,5}$')" ]; then
+        cat << EOF
+$1 is not an acceptable entry
+640x480 would be: -w 640 -h 480
+Only 3-5 digits are allowed: 64 and 640640 would fail
+EOF
+	    exit 0
+    else
+        WIDTH="$1"
+    fi
+}
+
+check_pixel_height(){
+    ensure_input_given $1
+    if [ ! "$(echo $1 | egrep '^[[:digit:]]{3,4}$')" ]; then
+        cat << EOF
+$1 is not an acceptable entry
+640x480 would be: -w 640 -h 480
+Only 3-4 digits are allowed: 48 and 48048 would fail
+EOF
+	    exit 0
+    else
+        HEIGHT="$1"
+    fi
+}
+
+check_output_display(){
+    ensure_input_given $1
+    displays=$(xrandr | grep connected | awk 'BEGIN {ORS=" "}; {print $1}')
+    primary=$(xrandr | grep primary | cut -f1 -d' ')
+
+    for display in $displays; do
+	    if [ "$1" = "$display" ]; then
+		    found=1
+	    fi
+    done
+
+    if [ "$found" != 1 ]; then
+	    echo "$1 not in displays: $displays"
+	    exit 0
+    else
+        OUTPUT="$1"
+    fi
+}
+
+check_output_position(){
+    if [ ! "$1" ]; then
+        POSITION='same-as'
+    else
+        case $1 in
+            left-of) POSITION='left-of' ;;
+            right-of) POSITION='right-of' ;;
+            above) POSITION='above' ;;
+            below) POSITION='below' ;;
+            same-as) POSITION='same-as' ;;
+            *) echo "$1 not in positions: left-of, right-of, above, below, same-as" && exit 0
+        esac
+    fi
+}
+
+ensure_requirements(){
+    if [ ! "$WIDTH" ] || [ ! "$HEIGHT" ] || [ ! "$OUTPUT" ]; then
+        echo 'Not all requirements found.\n'
+        usage | head -3
+        echo 'Try 'xaddress --help' for more information.'
+        exit 0
+    fi
+}
+
+case $1 in
+    -w | --width) check_pixel_width $2 ;;
+    -h | --height) check_pixel_height $2 ;;
+    -o | --output) check_output_display $2 ;;
+    -p | --position) check_output_position $2 ;;
+    -H | --help) usage && exit 0 ;;
+    *) usage | head -3 && echo "Try 'xaddres --help' for more information." && exit 0 ;;
+esac
+
+case $3 in
+    -w | --width) check_pixel_width $4 ;;
+    -h | -height) check_pixel_height $4 ;;
+    -o | --output) check_output_display $4 ;;
+    -p | --position) check_output_position $4 ;;
+    -H | --help) usage && exit 0 ;;
+    *) usage | head -3 && echo "Try 'xaddres --help' for more information." && exit 0 ;;
+esac
+
+case $5 in
+    -w | --width) check_pixel_width $6 ;;
+    -h | --height) check_pixel_height $6 ;;
+    -o | --output) check_output_display $6 ;;
+    -p | --position) check_output_position $6 ;;
+    -H | --help) usage && exit 0 ;;
+    *) usage | head -3 && echo "Try 'xaddres --help' for more information." && exit 0 ;;
+esac
+
+if [ "$7" ]; then
+    case $7 in
+        -w | --width) check_pixel_width $8 ;;
+        -h | --height) check_pixel_height $8 ;;
+        -o | --output) check_output_display $8 ;;
+        -p | --position) check_output_position $8 ;;
+        -H | --help) usage && exit 0 ;;
+        *) usage | head -3 && echo "Try 'xaddres --help' for more information." && exit 0 ;;
+    esac
+else
+    POSITION='same-as'
+fi
+
+ensure_requirements
+
+new_mode=$(cvt -r $WIDTH $HEIGHT | tail -1 | sed -E 's/^Modeline //')
+new_resolution=$(echo $new_mode | cut -f1 -d' ' | sed 's/"//g')
+
+xrandr --output $OUTPUT --above $primary --auto
+
+xrandr --newmode $new_mode && xrandr --addmode $OUTPUT $new_resolution
+
+xrandr --output $OUTPUT --$POSITION $primary
+
+xrandr --output $OUTPUT --mode $new_resolution
