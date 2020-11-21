@@ -1,5 +1,10 @@
 #!/usr/bin/env sh
 
+# CONVENTIONS
+# ===========
+# Variables in upper-case (e.g. $RESOLUTION) are defined by the user in some way.
+# Variables in lower-case (e.g. $primary) are not defined by the user.
+
 usage(){
     cat << EOF
 Usage: xaddres [OPTIONS]
@@ -74,6 +79,11 @@ check_output_display(){
 }
 
 check_output_position(){
+    if [ "$OUTPUT" = "$primary" ]; then
+        echo 'Cannot specify position of non-primary display.'
+        exit 0
+    fi
+
     if [ ! "$1" ]; then
         POSITION='same-as'
     else
@@ -142,10 +152,11 @@ ensure_requirements
 new_mode=$(cvt -r $WIDTH $HEIGHT | tail -1 | sed -E 's/^Modeline //')
 new_resolution=$(echo $new_mode | cut -f1 -d' ' | sed 's/"//g')
 
-xrandr --output $OUTPUT --above $primary --auto
+[ "$OUTPUT" != "$primary" ] && xrandr --output $OUTPUT --above $primary --auto
 
 xrandr --newmode $new_mode && xrandr --addmode $OUTPUT $new_resolution
 
-xrandr --output $OUTPUT --$POSITION $primary
+[ "$OUTPUT" != "$primary" ] && xrandr --output $OUTPUT --$POSITION $primary
 
 xrandr --output $OUTPUT --mode $new_resolution
+
