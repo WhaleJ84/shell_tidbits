@@ -4,7 +4,7 @@
 # if a directory, go to and show contents
 if [ -d "$1" ]; then
 	cd "$1"
-	la
+	ls --color=auto -alh
 # if nothing is given, go home
 elif [ -z "$1" ]; then
 	cd "$HOME"
