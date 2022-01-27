@@ -1,0 +1,37 @@
+#!/bin/sh
+
+set -e
+
+
+usage(){
+    cat << EOF
+Usage: $0 [OPTION]...
+fgit me not - finds git repositories on filesystem.
+run with elevated privileges to find those outside the user.
+
+OPTIONS:
+    -h          Display this message and exit
+    -o FILE     Redirect STDOUT to FILE
+    -u          Replace '/home/\$USER' in output to '~'
+EOF
+    exit 0
+}
+
+COMMAND="find / -name '.git' -type d 2>/dev/null"
+OPTSTRING='huo:'
+
+while getopts "$OPTSTRING" arg; do
+    case "$arg" in
+        h) usage ;;
+        u) COMMAND="${COMMAND} | sed -E 's/\/home\/$USER/~/'" ;;
+        ?) usage ;;
+    esac
+done
+OPTIND=1
+while getopts "$OPTSTRING" arg; do
+    case "$arg" in
+        o) COMMAND="${COMMAND} > $OPTARG"
+    esac
+done
+
+eval $COMMAND
