@@ -1,0 +1,19 @@
+#!/bin/sh
+set -e
+
+CHARS=${#1}
+REMAINING_CHARS=$(echo "$(tput cols)-$CHARS" | bc)
+CHARS_PER_SIDE=$(echo "($REMAINING_CHARS/2)-5" |bc)
+TOTAL_CHARS=$(echo "$CHARS_PER_SIDE*2+$CHARS" | bc)
+
+if [ `expr $TOTAL_CHARS % 2` -ne 0 ]; then
+    # odd number of characters
+    LEFT_CHARS=$(awk "BEGIN {while (z++ < $CHARS_PER_SIDE) printf \"=\"}")
+    RIGHT_CHARS=$(awk "BEGIN {while (z++ < $(echo "$CHARS_PER_SIDE+1" | bc)) printf \"=\"}")
+    printf '\n# %s [ %s ] %s #\n'  "$LEFT_CHARS" "$1" "$RIGHT_CHARS"
+else
+    # even number of characters
+    SIDE_CHARS=$(awk "BEGIN {while (z++ < $CHARS_PER_SIDE) printf \"=\"}")
+    printf '\n# %s [ %s ] %s #\n'  "$SIDE_CHARS" "$1" "$SIDE_CHARS"
+fi
+
