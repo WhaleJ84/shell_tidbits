@@ -1,0 +1,14 @@
+#!/bin/sh
+# A clockwise rotating spinner. De-bash'ed example of:
+# https://www.shellscript.sh/tips/spinner/
+
+spinner='| / - \ | / - \'
+
+while true; do
+    for pos in $spinner; do
+        printf "%s" "$pos"
+        printf "%b%s" "\\r\\033[K" "$pos"
+        sleep 0.1
+    done
+done
+
