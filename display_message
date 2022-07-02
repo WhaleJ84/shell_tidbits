@@ -1,9 +1,13 @@
 #!/bin/sh
+# generates a padded message via on the input provided.
+# padding is dynamically set based on terminal column length.
+# see output of `display_messsage "message w/ 80 cols"` below:
+# ========================== [ message w/ 80 cols ] ========================== #
 set -e
 
 CHARS=${#1}
 REMAINING_CHARS=$(echo "$(tput cols)-$CHARS" | bc)
-CHARS_PER_SIDE=$(echo "($REMAINING_CHARS/2)-5" |bc)
+CHARS_PER_SIDE=$(echo "($REMAINING_CHARS/2)-5" | bc)
 TOTAL_CHARS=$(echo "$CHARS_PER_SIDE*2+$CHARS" | bc)
 
 if [ `expr $TOTAL_CHARS % 2` -ne 0 ]; then
